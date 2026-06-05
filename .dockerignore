@@ -1,0 +1,14 @@
+# Build context is repo root (docker-compose: context: ..)
+# Data dirs are mounted at runtime as ../rag:/app — do not bake huge PDFs into the image.
+
+.git
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+
+rag/docs/
+rag/docs backup/
+rag/docs_prepared/
+rag/docs_toc/
+
+**/*.pdf

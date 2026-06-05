@@ -1,0 +1,124 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  migrate:
+    image: liquibase/liquibase:4.29
+    container_name: rag_migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./liquibase/changelog:/liquibase/changelog
+    command:
+      - --url=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - --username=${POSTGRES_USER}
+      - --password=${POSTGRES_PASSWORD}
+      - --changelog-file=changelog/db.changelog.xml
+      - update
+    restart: "no"
+
+  prepare_docs:
+    build:
+      context: ..
+      dockerfile: docker/rag/Dockerfile
+    image: ormproject-rag:local
+    container_name: rag_prepare_docs
+    working_dir: /app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../rag:/app
+    env_file:
+      - .env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command:
+      - python
+      - scripts/prepare_ocr_docs.py
+      - --raw-dir
+      - /app/docs
+      - --toc-dir
+      - /app/docs_toc
+      - --out-dir
+      - /app/docs_prepared
+      - --workers
+      - "1"
+    restart: "no"
+
+  # LM Studio на хосте: сервер API включён, модель эмбеддингов загружена, порт = EMBEDDING_API_URL.
+  # extra_hosts нужен Linux/WSL; при Errno 101 проверьте брандмауэр и что LM Studio слушает сеть, не только 127.0.0.1.
+  rag:
+    build:
+      context: ..
+      dockerfile: docker/rag/Dockerfile
+    image: ormproject-rag:local
+    container_name: rag
+    working_dir: /app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../rag:/app
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      prepare_docs:
+        condition: service_completed_successfully
+    command: uvicorn rag_service.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  telegram_bot:
+    build:
+      context: ..
+      dockerfile: docker/telegram_bot/Dockerfile
+    image: ormproject-telegram-bot:local
+    container_name: telegram_bot
+    working_dir: /app
+    volumes:
+      - ../bot:/app
+    env_file:
+      - .env
+    depends_on:
+      rag:
+        condition: service_healthy
+    command:
+      - sh
+      - -lc
+      - pip install --no-cache-dir -r requirements.txt && python main.py
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,0 +1,50 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual environments ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Secrets / конфиги с паролями ──────────────────────────────────────────────
+# Шаблон: docker/.env.example (в git). Рабочий docker/.env — не коммитим.
+.env
+**/.env
+!docker/.env.example
+
+# ── Кеш OCR (создаётся автоматически, не коммитим) ───────────────────────────
+rag/docs_prepared/.prepare_page_cache/
+
+# ── Логи ──────────────────────────────────────────────────────────────────────
+*.log
+rag/old.log
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+
+# ── Cursor ────────────────────────────────────────────────────────────────────
+.cursor/
+
+# ── Отладочные и временные файлы ──────────────────────────────────────────────
+debug-report.docx
+exemple/
+# Генерируется скриптом regenerate_smoke_test_only.py из conclusion_base.docx
+rag/templates/conclusion_jinja_smoke_test.docx
+*.tmp
+*.bak
+*.bak.docx
+*.swp
+~$*
+
+# ── Docker volumes (создаются docker compose, не хранятся в репо) ─────────────
+docker/pgdata/

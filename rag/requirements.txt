@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-dotenv
+psycopg[binary]
+pypdf
+python-docx
+docxtpl
+pytesseract
+Pillow
+PyMuPDF

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+    <changeSet id="001-init-rag-chunks" author="cursor">
+        <sqlFile
+                path="sql/001_init.sql"
+                relativeToChangelogFile="true"
+                splitStatements="true"
+                endDelimiter=";"/>
+    </changeSet>
+
+    <changeSet id="002-multimodal-page-images" author="cursor">
+        <sqlFile
+                path="sql/002_multimodal_page_images.sql"
+                relativeToChangelogFile="true"
+                splitStatements="true"
+                endDelimiter=";"/>
+    </changeSet>
+
+    <changeSet id="003-illustration-chunks" author="cursor">
+        <sqlFile
+                path="sql/003_illustration_chunks.sql"
+                relativeToChangelogFile="true"
+                splitStatements="true"
+                endDelimiter=";"/>
+    </changeSet>
+
+    <changeSet id="004-telegram-user-profiles" author="cursor">
+        <sqlFile
+                path="sql/004_telegram_user_profiles.sql"
+                relativeToChangelogFile="true"
+                splitStatements="true"
+                endDelimiter=";"/>
+    </changeSet>
+
+    <changeSet id="005-telegram-user-profiles-specialist-fields" author="cursor">
+        <sqlFile
+                path="sql/005_telegram_user_profiles_specialist_fields.sql"
+                relativeToChangelogFile="true"
+                splitStatements="true"
+                endDelimiter=";"/>
+    </changeSet>
+
+    <changeSet id="006-embedding-dim-4096" author="cursor">
+        <sqlFile
+                path="sql/006_embedding_dim_4096.sql"
+                relativeToChangelogFile="true"
+                splitStatements="true"
+                endDelimiter=";"/>
+    </changeSet>
+
+</databaseChangeLog>
