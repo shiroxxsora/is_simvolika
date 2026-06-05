@@ -358,12 +358,16 @@ docker compose up -d --build
 
 | Симптом | Причина | Решение |
 |---|---|---|
-| `Errno 101 / Connection refused` для LM Studio | LM Studio не запущен или слушает только 127.0.0.1 | Запустите LM Studio до `compose up`; bind `0.0.0.0` |
+| «Не удалось обратиться к RAG сервису» (первый запрос) | RAG ещё стартует или индексируется | Подождать 20–30 с, повторить; `docker compose logs rag` |
+| `[Индекс: ошибка — Model unloaded]` в конце ответа | Embedding-модель выгружена в LM Studio (часто при смене чат/VL-модели) | Загрузить `EMBEDDING_MODEL`, `docker compose restart rag`; ответ может быть верным — ошибка от фоновой индексации |
+| `Errno 101 / Connection refused` для LM Studio | LM Studio не запущен или слушает только 127.0.0.1 | Запустить LM Studio до `compose up`; bind `0.0.0.0` |
 | `llama truncation` в логах | Context Length = 4096 | В LM Studio → модель → Context Length ≥ 8192 |
-| `timed out` при индексации | Первый инференс CPU > 60 с | Увеличьте `EMBEDDING_TIMEOUT_SEC=600` |
-| `prepare_docs` падает / VL error | LM Studio недоступен или неверная модель | Проверьте `PREPARE_VL_API_URL`, `PREPARE_VL_MODEL` |
-| `/health` → `degraded`, `rag_chunk_count=0` | Индексация ещё идёт или упала | Смотрите `docker compose logs rag` |
-| Бот не отвечает | `TELEGRAM_BOT_TOKEN` неверный | Проверьте токен у @BotFather |
+| `timed out` при индексации | Первый инференс CPU > 60 с | Увеличить `EMBEDDING_TIMEOUT_SEC=600` |
+| `prepare_docs` падает / VL error | LM Studio недоступен или неверная модель | Проверить `PREPARE_VL_API_URL`, `PREPARE_VL_MODEL` |
+| `/health` → `degraded`, `rag_chunk_count=0` | Индексация идёт или упала | `docker compose logs rag` |
+| `Token is invalid!` в логах бота | Placeholder вместо токена в `docker/.env` | Токен от @BotFather → `TELEGRAM_BOT_TOKEN=...` → `restart telegram_bot` |
 | Бот не присылает `.docx` | Ошибка генерации docx или RAG недоступен | `docker compose logs rag` и `telegram_bot` |
-| «Сервис занят» при отправке фото | Идёт обработка предыдущего фото | Дождитесь завершения |
-| Сменили `EMBEDDING_DIM` | Размерность не совпадает с БД | `docker compose down -v`, обновите миграции, перезапустите |
+| «Сервис занят» при отправке фото | Идёт обработка предыдущего фото | Дождаться завершения |
+| Сменили `EMBEDDING_DIM` | Размерность не совпадает с БД | `docker compose down -v`, перезапуск |
+| `TLS handshake timeout` при `--build` | Нет доступа к Docker Hub | `docker compose up -d` без `--build` (если образы уже есть) |
+| GitHub: PDF > 50 MB при `git push` | Крупные PDF в `rag/docs/` (~76 MB Балдаев) | Push проходит (лимит 100 MB); опционально `git lfs track "rag/docs/*.pdf"` |
